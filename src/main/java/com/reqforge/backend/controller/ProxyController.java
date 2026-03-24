@@ -2,6 +2,7 @@ package com.reqforge.backend.controller;
 
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
@@ -50,8 +51,17 @@ public class ProxyController {
                 return ResponseEntity.badRequest().body("Invalid Method");
         }
 
-        return ResponseEntity.ok(response.getBody());
-        } catch (Exception e) {
+            return ResponseEntity.status(response.getStatusCode())
+                    .body(response.getBody());
+
+        } catch (HttpStatusCodeException ex) {
+
+            return ResponseEntity
+                    .status(ex.getStatusCode())
+                    .body(ex.getResponseBodyAsString());
+
+        }
+        catch (Exception e) {
             return ResponseEntity
                     .status(500)
                     .body("Request failed: " + e.getMessage());
