@@ -15,11 +15,14 @@ public class ProxyController {
 
     @PostMapping
     public ResponseEntity<?> callApi(@RequestBody Map<String, Object> request) {
+        try{
 
         String url = (String) request.get("url");
         String method = (String) request.get("method");
         Map<String, String> headers = (Map<String, String>) request.get("headers");
         Object body = request.get("body");
+        System.out.println("URL: " + url);
+        System.out.println("METHOD: " + method);
 
         HttpHeaders httpHeaders = new HttpHeaders();
         if (headers != null) {
@@ -48,5 +51,10 @@ public class ProxyController {
         }
 
         return ResponseEntity.ok(response.getBody());
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(500)
+                    .body("Request failed: " + e.getMessage());
+        }
     }
 }
