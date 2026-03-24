@@ -4,6 +4,7 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 
@@ -56,15 +57,25 @@ public class ProxyController {
 
         } catch (HttpStatusCodeException ex) {
 
-            return ResponseEntity
-                    .status(ex.getStatusCode())
-                    .body(ex.getResponseBodyAsString());
+            ObjectMapper mapper = new ObjectMapper();
+            String responseBody = ex.getResponseBodyAsString();
 
-        }
-        catch (Exception e) {
-            return ResponseEntity
-                    .status(500)
-                    .body("Request failed: " + e.getMessage());
+            if (responseBody == null || responseBody.isEmpty()) {
+                responseBody = ex.getStatusCode() + " " + ex.getStatusText();
+            }
+
+            try {
+                Object json = mapper.readValue(responseBody, Object.class);
+
+                return ResponseEntity
+                        .status(ex.getStatusCode())
+                        .body(json);
+
+            } catch (Exception parseEx) {
+                return ResponseEntity
+                        .status(ex.getStatusCode())
+                        .body(responseBody);
+            }
         }
     }
 }
